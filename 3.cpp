@@ -53,8 +53,6 @@ int main(){
 
         if (dont <= d)
             sum += stoi(m[1]) * stoi(m[2]);
-
-
     }
 
     cout << "SIZE: " << s.size()<< " => " << vs.size() << endl;
