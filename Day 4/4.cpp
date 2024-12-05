@@ -8,9 +8,6 @@
 #include <regex.h>
 using namespace std;
 
-bool xmas(char c1, char c2, char c3, char c4){
-    return (c1 == 'X' && c2 == 'M' && c3 == 'A' && c4 == 'S');
-}
 
 int count_word(vector<string> v, size_t i, size_t j, string word){
 
@@ -57,7 +54,7 @@ bool xmas(vector<string> v, size_t i, size_t j){
 int main(){
     
 	ifstream f("4.txt");
-
+    
 	if (!f.is_open()){
 		cerr << "Error opening the file!";
 		return 1;
