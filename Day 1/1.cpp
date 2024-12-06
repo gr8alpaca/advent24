@@ -38,7 +38,7 @@ int main()
 
 	sort(alpha.begin(), alpha.end(), comp); 
 	sort(beta.begin(), beta.end(), comp);
-
+	
 	int size_a = alpha.size();
 	int size_b = beta.size();
 

@@ -68,7 +68,7 @@ int main(){
 
 		safe += tolerable(v, 1);
 	}
-
+	
 	cout << "SAFE => " << safe << endl;
 
 	f.close();

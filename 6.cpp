@@ -8,148 +8,167 @@
 #include <regex.h>
 using namespace std;
 
-vector<array<int, 2>> rule_sets;
-vector<int> rules;
+const char OOB = '0';
 
-size_t idx(int x){
-    for (size_t i = 0; i < rules.size(); i++)
-        if (rules[i] == x)
-            return i;
-    return -1;
-}
+size_t x = 0;
+size_t y = 0;
 
-bool has(vector<int> v, int x){
-    for(size_t i = 0; i < v.size(); i++)
-         if (v[i] == x)
-            return true;
-    return false;
-}
+size_t tx = 0;
+size_t ty = 0;
 
-vector<int> find_rules(int x, bool greater, vector<int> r = {}){
-
-    for(size_t i = 0; i < rule_sets.size(); i++){
-        if (rule_sets[i][greater] != x)
-            continue;
-
-        int y = rule_sets[i][!greater];
-
-        if (!has(r, y)){
-            r.push_back(y);
-            r = find_rules(y, greater, r);
-            }
-        }
-
-    return r;
-}
-
-
-bool comp(int a, int b){
-    if (has(find_rules(a, true), b))
-        return false;
-    return true;
-}
-
-
-bool is_ordered(vector<int> v) {
-
-    vector<int> o = v;
-    sort(o.begin(), o.end(), comp);
-
-    for (size_t i = 0; i < v.size(); i++)
-        if (v[i] != o[i])
-            return false;
-
-    return true;
-}
-
-
-bool is_invalid(int x, int y){
-    for (size_t i = 0; i < rule_sets.size(); i++)
-        if (rule_sets[i][0] == y && rule_sets[i][1] == x)
-            return true;
-    return false;
-}
-
-bool is_line_valid(vector<int> v){
-    for (size_t i = 0; i < v.size(); i++){
-        for (size_t j = 0; j < v.size(); j++){
-            if (i < j && is_invalid(v[i], v[j]))
-                return false;
-            if (i > j && is_invalid(v[j], v[i]))
-                return false;
-        }
+struct grid{
+    vector<string> vs;
+    bool in_bounds(size_t i, size_t j){
+        return (j < vs.size() && i < vs[j].size());
     }
+    char at(size_t x, size_t y){
+        return vs[y][x];
+    }
+    void set(size_t x, size_t y, char c){
+        if (y < vs.size() && x < vs[y].size())
+            vs[y][x] = c;
+        else
+            cout << "ERROR: CANNOT SET VALUE \"" + to_string(c) + "\" at (" << to_string(x) << ", " << to_string(y) << ")" << endl; 
+    }
+    inline char operator[](array<size_t, 2> idx){
+        if (idx[1] < vs.size() && idx[0] < vs[idx[1]].size())
+            return vs[idx[1]][idx[0]];
+        else
+            return OOB;
+    }
+    inline string operator[](size_t i){
+        if (i < vs.size())
+            return vs[i];
+        return string(vs[0].size(), '#');
+        // string s = "";
+        // s.assign(vs[0], '#');
+        // return s;
+    }
+    inline size_t size(){
+        return vs.size();
+    }
+    inline void push_back(string s){
+        vs.push_back(s);
+    }
+    size_t count(){
+        size_t c = 0;
+        for (size_t i = 0; i < vs.size(); i++)
+            for (size_t j = 0; j < vs[i].size(); j++)
+                if (vs[i][j] == 'X')
+                    c++;
+        return c;
+    }
+    void print(){
+        cout << " ";
+        for (size_t i = 0; i < vs[0].size(); i++)
+            cout << " " << i;
+        for (size_t i = 0; i < vs.size(); i++){
+            cout << "\n" << i << " ";
+            for (size_t j = 0; j < vs[i].size(); j++)
+                cout << vs[i][j] << " ";
+            }
+        cout << "\n";
+    }
+} v;
+
+char ch(size_t i, size_t j){
+    return v[j][i];
+}
+
+void print_pos(){
+    cout << "(" << x << ", " << y << ")" << endl;
+}
+
+void find_guard(){
+    for(size_t i = 0; i < v.size(); i++)
+        for(size_t j = 0; j < v[i].size(); j++)
+            if (v[i][j] == '^' || v[i][j] == 'v' || v[i][j] == '>' || v[i][j] == '<'){
+                x = j;
+                y = i;
+            }
+}
+
+bool is_target_valid(){
+    return v[ty][tx] != '#';
+}
+
+bool update_target(bool f = true){
+    if (v[y][x] != '^' && v[y][x] != '>' && v[y][x] != 'v' && v[y][x] != '<'){
+        cout << "Character is not cursor -> \"" << v[y][x] << "\"\n"; 
+        return false;
+        }
+
+    if (v[y][x] == '^'){
+        tx = x;
+        ty = y - 1;
+        if (!is_target_valid())
+            v[y][x] = '>';
+    }
+
+    if (v[y][x] == '>'){
+        tx = x + 1;
+        ty = y;
+        if (!is_target_valid())
+            v[y][x] = 'v';
+    }
+    
+    if (v[y][x] == 'v'){
+        tx = x;
+        ty = y + 1;
+        if (!is_target_valid())
+            v[y][x] = '<';
+    }
+
+    if (v[y][x] == '<'){
+        tx = x - 1;
+        ty = y;
+    }
+
+    if (!is_target_valid() && f){
+            v[y][x] = '^';
+            return update_target(false);
+    }
+    
     return true;
+}
+
+void move(){
+    // v.print();
+    // cout << "MOVING << (" << x << ", " << y << ") => " << "(" << tx << ", " << ty << ")" << endl;
+
+    v.set(tx, ty, v[y][x]);
+    v.set(x, y, 'X');
+    x = tx;
+    y = ty;
+
+    // cout << "__NEW GRID__" << endl;
+    // v.print();
 }
 
 
 int main(){
-	ifstream f("6.txt");
+	ifstream f("test.txt");
     
 	if (!f.is_open()){
 		cerr << "Error opening the file!";
 		return 1;
 	}
     
-    vector<vector<int>> v;
-
     string s;
     while(getline(f, s)){
-        
-        if (s.length() > 1 && s[2] == '|'){
-            array<int, 2> rule_set = {stoi(s.substr(0, 2)), stoi(s.substr(3, 2))};
-            rule_sets.push_back(rule_set);
-
-            if (!has(rules, rule_set[0]))
-                rules.push_back(rule_set[0]);
-
-            if (!has(rules, rule_set[1]))
-                rules.push_back(rule_set[1]);
-            }
-        
-        else if (s.size() > 2){
-            vector<int> r;
-            for (size_t i = 0; i < s.size(); i+=3)
-                r.push_back(stoi(s.substr(i, 2)));
-            v.push_back(r);
-        }
+        v.push_back(s);
     }
-
+    
 	f.close();
 
-	size_t sum = 0;
-
-    for (size_t i = 0; i < v.size(); i++){
-        for (size_t j = 0; j < v[i].size(); j++)
-            cout << v[i][j] << " ";
-
-        if (!is_line_valid(v[i])){
-
-            cout << "| " << "FALSE" << endl;  
-            do{
-                
-                vector<int> initial_vector = vector(v[i]);
-                sort(v[i].begin(), v[i].end(), is_invalid);
-                for (size_t j = 0; j < v[i].size(); j++)
-                    cout << v[i][j] << " ";
-                
-                if (v[i] == initial_vector){
-                    cout << "BREAKING..." << endl;
-                    break;
-                cout << endl;
-                }
-
-                    
-            } while (!is_line_valid(v[i]));
-            int k = v[i].size()/2;
-            cout << "\t ADDING => " << v[i][k] << endl;
-            sum += v[i][k];
-        }
-
-              
+    find_guard();
+    print_pos();
+    while (update_target()){
+        move();
     }
-
-    cout << "\nCount: " << sum << "\n" << endl;
-
+    v.print();
+    // v.set(x, y, 'X');
+    size_t sum = v.count();
+    cout << "UNIQUE POSTIONS: " << sum << endl;;
 	return sum;
 }
