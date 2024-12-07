@@ -16,8 +16,19 @@ size_t y = 0;
 size_t tx = 0;
 size_t ty = 0;
 
+vector<array<size_t, 2>> block_spots;
+
+char prev_char = '^';
+
 struct grid{
     vector<string> vs;
+
+    string column(size_t x){
+        string s = "";
+        for (size_t i = 0; i < vs.size(); i++)
+            s += vs[i][x];
+        return s;
+    }
     bool in_bounds(size_t i, size_t j){
         return (j < vs.size() && i < vs[j].size());
     }
@@ -40,15 +51,15 @@ struct grid{
         if (i < vs.size())
             return vs[i];
         return string(vs[0].size(), '#');
-        // string s = "";
-        // s.assign(vs[0], '#');
-        // return s;
     }
     inline size_t size(){
         return vs.size();
     }
     inline void push_back(string s){
         vs.push_back(s);
+    }
+    size_t max_loops(){
+        return vs.size() * vs[0].size();
     }
     size_t count(){
         size_t c = 0;
@@ -58,17 +69,22 @@ struct grid{
                     c++;
         return c;
     }
-    void print(){
-        cout << " ";
+    string str(){
+        string s = " ";
         for (size_t i = 0; i < vs[0].size(); i++)
-            cout << " " << i;
+            s = s + " " + to_string(i);
         for (size_t i = 0; i < vs.size(); i++){
-            cout << "\n" << i << " ";
+            s = s + "\n" + to_string(i) + " ";
             for (size_t j = 0; j < vs[i].size(); j++)
-                cout << vs[i][j] << " ";
+                s = s + vs[i][j] + " ";
             }
-        cout << "\n";
+        s += "\n";
+        return s;
     }
+    void print(){
+        cout << str();
+    }
+    
 } v;
 
 char ch(size_t i, size_t j){
@@ -92,62 +108,89 @@ bool is_target_valid(){
     return v[ty][tx] != '#';
 }
 
+bool is_loopable(){
+    string row = v[y], col = v.column(x);
+    
+    array<size_t, 2> dir = {(v[y][x] == '^') - (v[y][x] == 'v'), (v[y][x] == '>') - (v[y][x] == '<')}, pos = {x, y};
+
+    if(v[y][x] == '^'){
+
+    }
+    return false;
+}
+
+
+
 bool update_target(bool f = true){
     if (v[y][x] != '^' && v[y][x] != '>' && v[y][x] != 'v' && v[y][x] != '<'){
         cout << "Character is not cursor -> \"" << v[y][x] << "\"\n"; 
         return false;
         }
 
+    // size_t bx, by;
+
     if (v[y][x] == '^'){
         tx = x;
         ty = y - 1;
+        if (!v.in_bounds(tx, ty))
+            return false;
         if (!is_target_valid())
-            v[y][x] = '>';
+            v.set(x, y, '>');
     }
 
     if (v[y][x] == '>'){
         tx = x + 1;
         ty = y;
+        if (!v.in_bounds(tx, ty))
+            return false;
         if (!is_target_valid())
-            v[y][x] = 'v';
+            v.set(x, y, 'v');
     }
     
     if (v[y][x] == 'v'){
         tx = x;
         ty = y + 1;
+        if (!v.in_bounds(tx, ty))
+            return false;
         if (!is_target_valid())
-            v[y][x] = '<';
+            v.set(x, y, '<');
     }
 
     if (v[y][x] == '<'){
+        if (x == 0)
+            return false;
         tx = x - 1;
         ty = y;
+        if (!v.in_bounds(tx, ty))
+            return false;
     }
 
     if (!is_target_valid() && f){
-            v[y][x] = '^';
+            v.set(x, y, '^');
             return update_target(false);
     }
     
+    if (v[ty][tx] == 'X'){
+        size_t ux = tx + (tx - x), uy = ty + (ty - y);
+        if (v.in_bounds(ux, uy)){
+            block_spots.push_back({ux, uy});
+        }
+    }
+
     return true;
 }
 
 void move(){
-    // v.print();
-    // cout << "MOVING << (" << x << ", " << y << ") => " << "(" << tx << ", " << ty << ")" << endl;
-
     v.set(tx, ty, v[y][x]);
-    v.set(x, y, 'X');
+    v.set(x, y, (prev_char != v[y][x]) ? '+':'X');
     x = tx;
     y = ty;
-
-    // cout << "__NEW GRID__" << endl;
-    // v.print();
+    prev_char = v[y][x];
 }
 
 
 int main(){
-	ifstream f("test.txt");
+    ifstream f("test.txt");
     
 	if (!f.is_open()){
 		cerr << "Error opening the file!";
@@ -162,13 +205,25 @@ int main(){
 	f.close();
 
     find_guard();
-    print_pos();
-    while (update_target()){
+
+    size_t max_loops = v.max_loops()*2;
+    size_t i = 0;
+    while (i < max_loops && update_target()){
         move();
+        i++;
     }
-    v.print();
-    // v.set(x, y, 'X');
+    
+    v.set(x, y, 'X');
     size_t sum = v.count();
-    cout << "UNIQUE POSTIONS: " << sum << endl;;
-	return sum;
+    cout << "UNIQUE POSTIONS: " << sum << "\tLoops: " << i << endl;
+    cout << "BLOCK SPOTS: " << block_spots.size() << endl;
+
+    for (size_t i = 0; i < block_spots.size(); i++)
+        v.set(block_spots[i][0], block_spots[i][1], '0');
+
+    ofstream of("log.txt");
+    of << v.str();
+    of.close();
+
+    return sum;
 }
