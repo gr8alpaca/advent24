@@ -14,17 +14,17 @@ int ctoi(char c){
 }
 
 struct vec2{
-    int x;
-    int y;
+    int x = 0;
+    int y = 0;
 
-    vec2(){
-        x = 0;
-        y = 0;
+    vec2(){}
+    
+    vec2(array<int, 2> a){
+        x = a[0]; y = a[1];
     }
-
+    
     vec2(int input_x, int input_y){
-        x = input_x;
-        y = input_y;
+        x = input_x; y = input_y;
     }
 
     inline int& operator[](int y){
