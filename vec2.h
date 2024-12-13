@@ -4,15 +4,25 @@
 
 template<typename T>
 struct vec2{
+    static const int AXIS_COUNT = 2;
+
+	enum axis {
+		AXIS_X,
+		AXIS_Y,
+	};
+
+
     T x; T y;
     
     // Constructors
 
-    vec2<T>(){x = T(0); y = T(0);}
+    vec2(){x = 0; y = 0;}
     
-    vec2<T>(T input_x, T input_y){x = input_x; y = input_y;}
+    vec2(T input_x, T input_y){x = input_x; y = input_y;}
 
-    vec2<T>(T i){x = i; y = i;}
+    vec2(T i){x = i; y = i;}
+
+    template<typename OT> void operator=(vec2<OT> v) {x = T(v.x); y = T(v.y);};
 
     //Operations
 
@@ -24,7 +34,7 @@ struct vec2{
         return vec2<T> (x + T(v.x), y + T(v.y));
     }
 
-    template <typename OT> inline void operator+=(vec2<OT> v){
+    template<typename OT> inline void operator+=(vec2<OT> v){
         x = x + T(v.x);  y = y + T(v.y);
     }
 
@@ -33,7 +43,8 @@ struct vec2{
     inline vec2<T> operator-(vec2<T>  v){
         return vec2<T>(x - T(v.x), y - T(v.y));
     }
-    template <typename OT> inline void operator-=(vec2<OT>  v){
+    
+    template<typename OT> inline void operator-=(vec2<OT>  v){
         x = x - T(v.x);  y = y - T(v.y);
     }
     
